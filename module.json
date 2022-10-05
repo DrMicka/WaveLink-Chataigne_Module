@@ -2,7 +2,7 @@
    "name": "WaveLink",
    "type": "WebSocket Client",
    "path": "Software",
-   "version": "0.0.1",
+   "version": "0.5.0",
    "description": "To control your WaveLink sounds",
    "url": "https://github.com/DrMicka/WaveLink-Chataigne_Module",
    "downloadURL": "https://github.com/DrMicka/WaveLink-Chataigne_Module/archive/master.zip",
@@ -20,22 +20,6 @@
       "WaveLink.js"
    ],
    "commands": {
-		"Hello Wave Link": {
-			"menu": "",
-			"callback": "HelloWaveLink",
-			"parameters": {
-            },
-		},
-		
-		"Raw Command (JSON)": {
-			"menu": "",
-			"callback": "sendObsRawJSONCommand",
-			"parameters": {
-				"data": {
-					"type": "String"
-            },}
-		},
-		
 		"Commande": {
 			"menu": "",
 			"callback": "Commande",
@@ -46,26 +30,10 @@
 		
 		"Set volume": {
 			"menu": "",
+			"setupCallback":"setupEnumChannel",
 			"callback": "setVolume",
 			"parameters": {
-				"Toggle channel": {
-					"type": "Enum", "options": { 
-						"Wave micro":"waveMicro",
-						"System":"System",
-						"Music":"Music",
-						"Browser":"Browser",
-						"Voice Chat":"voiceChat",
-						"SFX":"SFX",
-						"Game":"Game",
-						"Aux1":"AUX1",
-						"Aux2":"AUX2",
-						}
-				},
-				"Type of volume": {
-					"type": "Enum", "options": { 
-						"Local mix":"local",
-						"Stream mix":"stream",}
-				},
+
 				"Volume (%)": {
 					"type": "Integer", "min":0, "max":100,
 				},
@@ -74,54 +42,21 @@
 
 		"Toggle mute volume": {
 			"menu": "",
+			"setupCallback":"setupEnumChannel",
 			"callback": "toggleMuteVolume",
 			"parameters": {
-				"Toggle channel": {
-					"type": "Enum", "options": { 
-						"Wave micro":"waveMicro",
-						"System":"System",
-						"Music":"Music",
-						"Browser":"Browser",
-						"Voice Chat":"voiceChat",
-						"SFX":"SFX",
-						"Game":"Game",
-						"Aux1":"AUX1",
-						"Aux2":"AUX2",
-						}
-				},
-				"Type of volume": {
-					"type": "Enum", "options": { 
-						"Local mix":"local",
-						"Stream mix":"stream",
-					}
-				},
+				
 			}
 		},
 		
 		"Toggle filter": {
 			"menu": "",
 			"callback": "toggleFilter",
+			"setupCallback":"setupToggleFilter",
 			"parameters": {
-				"Toggle channel": {
-					"type": "Enum", "options": { 
-						"Wave micro":"waveMicro",
-						"System":"System",
-						"Music":"Music",
-						"Browser":"Browser",
-						"Voice Chat":"voiceChat",
-						"SFX":"SFX",
-						"Game":"Game",
-						"Aux1":"AUX1",
-						"Aux2":"AUX2",
-						}
-				},
-				"Filter to toggle": {
-					"type": "Enum", "options": { 
-						"Local mix":"local",
-						"Stream mix":"stream",
-					}
-				},
-			}
+			
+			},
 		},
 	}
 }
+

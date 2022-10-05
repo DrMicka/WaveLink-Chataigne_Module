@@ -1,15 +1,32 @@
 /* 	--------------------------------------------------------------------------------------------------------------
 										CONNEXION TO WAVE LINK BY WEBSOCKET
 	--------------------------------------------------------------------------------------------------------------*/
+function update(deltaTime)
+{
+	if (statut == 0) {//si Wavelink repond on est connecté, on demande l'état des channels
+		ID = 1;
+		local.send('{"jsonrpc":"2.0","method":"getAllChannelInfo","id":'+ID+'}');
+	}
+}
+
 function init()
 {
 	var ID = 0;
 	var statut;
 }
+/*
+hello pour json
+		"Hello Wave Link": {
+			"menu": "",
+			"callback": "HelloWaveLink",
+			"parameters": {
+            },
+		},
 function HelloWaveLink() {
 	ID ++;
 	local.send('{"jsonrpc":"2.0","method":"getApplicationInfo","id":'+ID+'}');
-}
+}*/
+
 function wsMessageReceived(data) { //check si WaveLink répond
 	var connect = JSON.parse(data);
 	if (connect.id == 1) {//si Wavelink repond on est connecté, on demande l'état des channels
@@ -59,74 +76,68 @@ function wsMessageReceived(data) { //check si WaveLink répond
 	}
 };
 
+/* 	--------------------------------------------------------------------------------------------------------------
+										DIFFERENTS FUNCTIONS FOR SCRIPT
+	--------------------------------------------------------------------------------------------------------------*/
 function FiltersList(index) {
 	var n = 0;
-	var filters;
+	var filters ="";
 	while (statut['result'][index]['filters'][n].filterID != null) {
-		filters += '{"active":'+statut['result'][index]['filters'][n].active+',"filterID":"'+statut['result'][index]['filters'][n].filterID+'","name":"'+statut['result'][index]['filters'][n].name+'","pluginID":"'+statut['result'][index]['filters'][n].pluginID+'"},';
+		if (n!=0){
+			filters += ",";
+		}
+		filters += '{"active":'+statut['result'][index]['filters'][n].active+',"filterID":"'+statut['result'][index]['filters'][n].filterID+'","name":"'+statut['result'][index]['filters'][n].name+'","pluginID":"'+statut['result'][index]['filters'][n].pluginID+'"}';
 	n++;	
 	}
 	return filters;
 };
 
-function Commande() {
+function setupEnumChannel(command) {
+    var enumChan = command.addEnumParameter("Toggle channel", "");
+	var enumTypVol = command.addEnumParameter("Type of volume", "");
+	enumTypVol.addOption("Local mix","local");
+	enumTypVol.addOption("Stream mix","stream");
+	var index = 0;
+	while (statut['result'][index].bgColor != null) {
+		enumChan.addOption(statut['result'][index].mixerName,statut['result'][index].mixId);
+		index++;
+	}
+ }
+
+function setupToggleFilter(command) {
+    var enumChan = command.addEnumParameter("Toggle channel", "");
+	var enumFilt = command.addEnumParameter("Filter to toggle", "");
 	var index = 0;
 	var n = 0;
-	var filters;
-	while (statut['result'][index]['filters'][n].filterID != null) {
-		filters += '{"active":'+statut['result'][index]['filters'][n].active+',"filterID":"'+statut['result'][index]['filters'][n].filterID+'","name":"'+statut['result'][index]['filters'][n].name+'","pluginID":"'+statut['result'][index]['filters'][n].pluginID+'"},';
-		script.log(n);
-	n++;	
+	while (statut['result'][index].bgColor != null) {
+		while (statut['result'][index]['filters'][n].filterID != null) {
+			var choice = statut['result'][index].mixerName+' - '+statut['result'][index]['filters'][n].name;
+			enumFilt.addOption(choice,n);
+			n++;
+		}
+		enumChan.addOption(statut['result'][index].mixerName,statut['result'][index].mixId);
+		index++;
 	}
-	script.log(filters);
-}
+ }
 
-function sendObsRawJSONCommand(json) {
-	local.send(json);
-}
-
-//A partir d'ici on peut envoyer des datas avec un id = 5
-function sendWLCommand(req) {
+function Commande() {
 	ID ++;
-	script.log(JSON.stringify(send));
-	local.send(JSON.stringify(send));
+	//local.send
+	script.log(local.parameters.connected.Boolean);
+	if (local.parameters.connected == '[Connected : Boolean > 1]'){
+		script.log('je suis connecté');
+	}
+	else {
+		script.log('je suis out');
+	}
 }
 
 /* 	--------------------------------------------------------------------------------------------------------------
 										Fonction Set Volume
 	--------------------------------------------------------------------------------------------------------------*/
 
-function setVolume(Channel, Type, Vol) {
-//1. trouver mixId en fonction du channel choisi
-	if (Channel == "waveMicro") {
-		var idMix = "pcm_in_01_c_00_sd1";
-	}
-	else if (Channel == "System") { 
-		var idMix = "pcm_out_01_v_00_sd2";
-	}
-	else if (Channel == "Music") { 
-		var idMix = "pcm_out_01_v_02_sd3";
-	}
-	else if (Channel == "Browser") { 
-		var idMix = "pcm_out_01_v_04_sd4";
-	}
-	else if (Channel == "voiceChat") { 
-		var idMix = "pcm_out_01_v_06_sd5";
-	}
-	else if (Channel == "SFX") { 
-		var idMix = "pcm_out_01_v_08_sd6";
-	}
-	else if (Channel == "Game") { 
-		var idMix = "pcm_out_01_v_10_sd7";
-	}
-	else if (Channel == "AUX1") { 
-		var idMix = "pcm_out_01_v_12_sd8";
-	}
-	else if (Channel == "AUX2") { 
-		var idMix = "pcm_out_01_v_14_sd9";
-	}
-
-//2. trouver l'index du channel (mixID) vérifier si le son choisi est mute ou unmute et changer sa valeur
+function setVolume(Vol, idMix, Type) {
+//1. trouver l'index du channel (mixID) vérifier si le son choisi est mute ou unmute et changer sa valeur
 	var index;
 	var n = 0;
 	while (statut['result'][n].bgColor != null) {
@@ -141,10 +152,9 @@ function setVolume(Channel, Type, Vol) {
 	n++;
 	};
 
-//3. on envoi la commande
+//2. on envoi la commande
 	ID ++;
-	//local.send
-	local.send('{"jsonrpc": "'+statut.jsonrpc+'","method":"setInputMixer","id":'+ID+',"params":{"mixId":"'+idMix+'","slider":"'+Type+'","localVolumeIn":'+statut['result'][index].localVolumeIn+',"isLocalInMuted":'+statut['result'][index].isLocalInMuted+',"streamVolumeIn":'+statut['result'][index].streamVolumeIn+',"isStreamInMuted":'+statut['result'][index].isStreamInMuted+',"filters":[],"localMixFilterBypass":'+statut['result'][index].localMixFilterBypass+',"streamMixFilterBypass":'+statut['result'][index].streamMixFilterBypass+'}}');
+	local.send('{"jsonrpc": "'+statut.jsonrpc+'","method":"setInputMixer","id":'+ID+',"params":{"mixId":"'+idMix+'","slider":"'+Type+'","localVolumeIn":'+statut['result'][index].localVolumeIn+',"isLocalInMuted":'+statut['result'][index].isLocalInMuted+',"streamVolumeIn":'+statut['result'][index].streamVolumeIn+',"isStreamInMuted":'+statut['result'][index].isStreamInMuted+',"filters":['+FiltersList(index)+'],"localMixFilterBypass":'+statut['result'][index].localMixFilterBypass+',"streamMixFilterBypass":'+statut['result'][index].streamMixFilterBypass+'}}');
 	
 }
 
@@ -152,37 +162,8 @@ function setVolume(Channel, Type, Vol) {
 										Fonction toggle mute source
 	--------------------------------------------------------------------------------------------------------------*/
 
-function toggleMuteVolume(Channel, Type) {
-//1. trouver mixId en fonction du channel choisi
-	if (Channel == "waveMicro") {
-		var idMix = "pcm_in_01_c_00_sd1";
-	}
-	else if (Channel == "System") { 
-		var idMix = "pcm_out_01_v_00_sd2";
-	}
-	else if (Channel == "Music") { 
-		var idMix = "pcm_out_01_v_02_sd3";
-	}
-	else if (Channel == "Browser") { 
-		var idMix = "pcm_out_01_v_04_sd4";
-	}
-	else if (Channel == "voiceChat") { 
-		var idMix = "pcm_out_01_v_06_sd5";
-	}
-	else if (Channel == "SFX") { 
-		var idMix = "pcm_out_01_v_08_sd6";
-	}
-	else if (Channel == "Game") { 
-		var idMix = "pcm_out_01_v_10_sd7";
-	}
-	else if (Channel == "AUX1") { 
-		var idMix = "pcm_out_01_v_12_sd8";
-	}
-	else if (Channel == "AUX2") { 
-		var idMix = "pcm_out_01_v_14_sd9";
-	}
-
-//2. trouver l'index du channel (mixID) vérifier si le son choisi est mute ou unmute et changer sa valeur
+function toggleMuteVolume(idMix, Type) {
+//1. trouver l'index du channel (mixID) vérifier si le son choisi est mute ou unmute et changer sa valeur
 	var index;
 	var n = 0;
 	while (statut['result'][n].bgColor != null) {
@@ -205,18 +186,32 @@ function toggleMuteVolume(Channel, Type) {
 	n++;
 	};
 
-//3. on envoi la commande
+//2. on envoi la commande
 	ID ++;
-	//local.send
-	local.send('{"jsonrpc": "'+statut.jsonrpc+'","method":"setInputMixer","id":'+ID+',"params":{"mixId":"'+idMix+'","slider":"'+Type+'","localVolumeIn":'+statut['result'][index].localVolumeIn+',"isLocalInMuted":'+statut['result'][index].isLocalInMuted+',"streamVolumeIn":'+statut['result'][index].streamVolumeIn+',"isStreamInMuted":'+statut['result'][index].isStreamInMuted+',"filters":[],"localMixFilterBypass":'+statut['result'][index].localMixFilterBypass+',"streamMixFilterBypass":'+statut['result'][index].streamMixFilterBypass+'}}');
+	local.send('{"jsonrpc": "'+statut.jsonrpc+'","method":"setInputMixer","id":'+ID+',"params":{"mixId":"'+idMix+'","slider":"'+Type+'","localVolumeIn":'+statut['result'][index].localVolumeIn+',"isLocalInMuted":'+statut['result'][index].isLocalInMuted+',"streamVolumeIn":'+statut['result'][index].streamVolumeIn+',"isStreamInMuted":'+statut['result'][index].isStreamInMuted+',"filters":['+FiltersList(index)+'],"localMixFilterBypass":'+statut['result'][index].localMixFilterBypass+',"streamMixFilterBypass":'+statut['result'][index].streamMixFilterBypass+'}}');
 	
 }
 
 /* 	--------------------------------------------------------------------------------------------------------------
 										Fonction toggle filter
 	--------------------------------------------------------------------------------------------------------------*/
-
-function toggleFilter(Channel, Filtre) {
-	script.log(JSON.stringify(js));
-	local.send(JSON.stringify(js));
-}
+function toggleFilter(idMix, numFiltre) {
+//1. trouver l'index du channel (mixID) vérifier si le filtre choisi est mute ou unmute et changer sa valeur
+	var index;
+	var n = 0;
+	while (statut['result'][n].bgColor != null) {
+		if (statut['result'][n].mixId == idMix && statut['result'][0]['filters'][numFiltre].active == "true") {
+			index = n;
+			statut['result'][n]['filters'][numFiltre].active = "false";
+		}
+		else if (statut['result'][n].mixId == idMix && statut['result'][0]['filters'][numFiltre].active == "false") { 
+			index = n;
+			statut['result'][n]['filters'][numFiltre].active = "true";
+		}
+		n++;
+	}
+	
+//2. on envoi la commande
+	ID ++;
+	local.send('{"jsonrpc": "'+statut.jsonrpc+'","method":"setInputMixer","id":'+ID+',"params":{"mixId":"'+idMix+'","slider":"","localVolumeIn":'+statut['result'][index].localVolumeIn+',"isLocalInMuted":'+statut['result'][index].isLocalInMuted+',"streamVolumeIn":'+statut['result'][index].streamVolumeIn+',"isStreamInMuted":'+statut['result'][index].isStreamInMuted+',"filters":['+FiltersList(index)+'],"localMixFilterBypass":'+statut['result'][index].localMixFilterBypass+',"streamMixFilterBypass":'+statut['result'][index].streamMixFilterBypass+'}}');
+};
