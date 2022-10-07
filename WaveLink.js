@@ -1,31 +1,33 @@
-/* 	--------------------------------------------------------------------------------------------------------------
-										CONNEXION TO WAVE LINK BY WEBSOCKET
-	--------------------------------------------------------------------------------------------------------------*/
-function update(deltaTime)
-{
-	if (statut == 0) {//si Wavelink repond on est connecté, on demande l'état des channels
-		ID = 1;
-		local.send('{"jsonrpc":"2.0","method":"getAllChannelInfo","id":'+ID+'}');
-	}
-}
+var myTrigger = script.addTrigger("Save Info", "To save all informations of WaveLink");
+var myFileParam = script.addFileParameter("File Param", "File to save all informations of WaveLink");
+var statut;
 
 function init()
 {
 	var ID = 0;
-	var statut;
+	statut = JSON.parse(myFileParam.readFile());
 }
-/*
-hello pour json
-		"Hello Wave Link": {
-			"menu": "",
-			"callback": "HelloWaveLink",
-			"parameters": {
-            },
-		},
-function HelloWaveLink() {
-	ID ++;
-	local.send('{"jsonrpc":"2.0","method":"getApplicationInfo","id":'+ID+'}');
-}*/
+
+function scriptParameterChanged(param)
+{
+    script.log("Parameter changed : "+param.name); //All parameters have "name" property
+    if(param.is(myTrigger)) 
+    {
+        myFileParam.writeFile(statut, true);
+		var path = myFileParam.getAbsolutePath();
+        script.log('file written here : '+ path);
+    }
+}
+/* 	--------------------------------------------------------------------------------------------------------------
+										CONNEXION TO WAVE LINK BY WEBSOCKET
+	--------------------------------------------------------------------------------------------------------------*/
+function update()
+{
+	if (ID == 0) {//si Wavelink repond on est connecté, on demande l'état des channels
+		ID = 1;
+		local.send('{"jsonrpc":"2.0","method":"getAllChannelInfo","id":'+ID+'}');
+	}
+}
 
 function wsMessageReceived(data) { //check si WaveLink répond
 	var connect = JSON.parse(data);
@@ -62,9 +64,11 @@ function wsMessageReceived(data) { //check si WaveLink répond
 		} else {statut['result'][n].streamMixFilterBypass = "false";}
 		n++;
 	}
-		//et on demande l'état communtateur
-		ID ++;
-		local.send('{"jsonrpc":"2.0","method":"getSwitchState","id":'+ID+'}');
+	//on sauvegarde les nouveaux paramètres
+	myTrigger.trigger();
+	//et on demande l'état communtateur
+	ID ++;
+	local.send('{"jsonrpc":"2.0","method":"getSwitchState","id":'+ID+'}');
 	}
 	else if (connect.id == 3) {//si Wavelink repond, on prend les données  et on demande l'état des moniteurs
 	//ici il faut save tous les datas transmis
@@ -121,19 +125,10 @@ function setupToggleFilter(command) {
  }
 
 function Commande() {
-	ID ++;
-	//local.send
-	script.log(local.parameters.connected.Boolean);
-	if (local.parameters.connected == '[Connected : Boolean > 1]'){
-		script.log('je suis connecté');
-	}
-	else {
-		script.log('je suis out');
-	}
+	script.log(statut.jsonrpc);
 }
-
 /* 	--------------------------------------------------------------------------------------------------------------
-										Fonction Set Volume
+											Set Volume
 	--------------------------------------------------------------------------------------------------------------*/
 
 function setVolume(Vol, idMix, Type) {
@@ -152,14 +147,15 @@ function setVolume(Vol, idMix, Type) {
 	n++;
 	};
 
-//2. on envoi la commande
+//2. on sauvegarde les nouveaux paramètres et on envoi la commande
+	myTrigger.trigger();
 	ID ++;
 	local.send('{"jsonrpc": "'+statut.jsonrpc+'","method":"setInputMixer","id":'+ID+',"params":{"mixId":"'+idMix+'","slider":"'+Type+'","localVolumeIn":'+statut['result'][index].localVolumeIn+',"isLocalInMuted":'+statut['result'][index].isLocalInMuted+',"streamVolumeIn":'+statut['result'][index].streamVolumeIn+',"isStreamInMuted":'+statut['result'][index].isStreamInMuted+',"filters":['+FiltersList(index)+'],"localMixFilterBypass":'+statut['result'][index].localMixFilterBypass+',"streamMixFilterBypass":'+statut['result'][index].streamMixFilterBypass+'}}');
 	
 }
 
 /* 	--------------------------------------------------------------------------------------------------------------
-										Fonction toggle mute source
+											toggle mute source
 	--------------------------------------------------------------------------------------------------------------*/
 
 function toggleMuteVolume(idMix, Type) {
@@ -186,7 +182,8 @@ function toggleMuteVolume(idMix, Type) {
 	n++;
 	};
 
-//2. on envoi la commande
+//2. On sauvegarde les nouveaux paramètres et on envoi la commande
+	myTrigger.trigger();
 	ID ++;
 	local.send('{"jsonrpc": "'+statut.jsonrpc+'","method":"setInputMixer","id":'+ID+',"params":{"mixId":"'+idMix+'","slider":"'+Type+'","localVolumeIn":'+statut['result'][index].localVolumeIn+',"isLocalInMuted":'+statut['result'][index].isLocalInMuted+',"streamVolumeIn":'+statut['result'][index].streamVolumeIn+',"isStreamInMuted":'+statut['result'][index].isStreamInMuted+',"filters":['+FiltersList(index)+'],"localMixFilterBypass":'+statut['result'][index].localMixFilterBypass+',"streamMixFilterBypass":'+statut['result'][index].streamMixFilterBypass+'}}');
 	
@@ -211,7 +208,8 @@ function toggleFilter(idMix, numFiltre) {
 		n++;
 	}
 	
-//2. on envoi la commande
+//2. On sauvegarde les nouveaux paramètres et on envoi la commande
+	myTrigger.trigger();
 	ID ++;
 	local.send('{"jsonrpc": "'+statut.jsonrpc+'","method":"setInputMixer","id":'+ID+',"params":{"mixId":"'+idMix+'","slider":"","localVolumeIn":'+statut['result'][index].localVolumeIn+',"isLocalInMuted":'+statut['result'][index].isLocalInMuted+',"streamVolumeIn":'+statut['result'][index].streamVolumeIn+',"isStreamInMuted":'+statut['result'][index].isStreamInMuted+',"filters":['+FiltersList(index)+'],"localMixFilterBypass":'+statut['result'][index].localMixFilterBypass+',"streamMixFilterBypass":'+statut['result'][index].streamMixFilterBypass+'}}');
 };

@@ -2,8 +2,8 @@
    "name": "WaveLink",
    "type": "WebSocket Client",
    "path": "Software",
-   "version": "0.5.0",
-   "description": "To control your WaveLink sounds",
+   "version": "0.5.1",
+   "description": "To control your sounds via WaveLink",
    "url": "https://github.com/DrMicka/WaveLink-Chataigne_Module",
    "downloadURL": "https://github.com/DrMicka/WaveLink-Chataigne_Module/archive/master.zip",
    "hasInput": true,
@@ -20,20 +20,11 @@
       "WaveLink.js"
    ],
    "commands": {
-		"Commande": {
-			"menu": "",
-			"callback": "Commande",
-			"parameters": {
-				"data": {
-            },}
-		},
-		
 		"Set volume": {
 			"menu": "",
 			"setupCallback":"setupEnumChannel",
 			"callback": "setVolume",
 			"parameters": {
-
 				"Volume (%)": {
 					"type": "Integer", "min":0, "max":100,
 				},
@@ -56,6 +47,13 @@
 			"parameters": {
 			
 			},
+		},
+		"Script command": {
+			"menu": "",
+			"callback": "Commande",
+			"parameters": {
+				"data": {
+            },}
 		},
 	}
 }
