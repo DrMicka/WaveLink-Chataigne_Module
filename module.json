@@ -1,14 +1,23 @@
 {
-   "name": "WaveLink",
-   "type": "WebSocket Client",
-   "path": "Software",
-   "version": "0.5.1",
-   "description": "To control your sounds via WaveLink",
-   "url": "https://github.com/DrMicka/WaveLink-Chataigne_Module",
-   "downloadURL": "https://github.com/DrMicka/WaveLink-Chataigne_Module/archive/master.zip",
-   "hasInput": true,
-   "hasOutput": true,
-   "hideDefaultCommands": true,
+	"name": "WaveLink",
+	"type": "WebSocket Client",
+	"path": "Software",
+	"version": "0.5.2",
+	"description": "To control your sounds via WaveLink",
+	"url": "https://github.com/DrMicka/WaveLink-Chataigne_Module",
+	"downloadURL": "https://github.com/DrMicka/WaveLink-Chataigne_Module/archive/master.zip",
+	"hasInput": true,
+	"hasOutput": true,
+	"hideDefaultCommands": true,
+	"hideDefaultParameters": [
+		"autoAdd",
+		"connected",
+		"protocol",
+		"messageStructure",
+		"firstValueIsTheName",
+		"useSecureConnection",
+		"serverPath",
+	],
    "parameters": {
    },
    "defaults": {
@@ -16,6 +25,15 @@
       "autoAdd": false,
       "serverPath": "127.0.0.1:1824",
    },
+	"values": {
+		"removeAllValues": {
+			"type":"Trigger",
+		},
+		"AudioChannelNumber": {
+			"type":"Float",
+			"readOnly":true,
+		}
+	},
    "scripts": [
       "WaveLink.js"
    ],

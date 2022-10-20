@@ -18,71 +18,106 @@ function scriptParameterChanged(param)
         script.log('file written here : '+ path);
     }
 }
+
+function moduleValueChanged(value) {
+	if(value.name == "removeAllValues") {
+		removeValues();
+	}
+}
 /* 	--------------------------------------------------------------------------------------------------------------
 										CONNEXION TO WAVE LINK BY WEBSOCKET
 	--------------------------------------------------------------------------------------------------------------*/
 function update()
 {
-	if (ID == 0) {//si Wavelink repond on est connecté, on demande l'état des channels
+	if (ID == 0) {//si Wavelink repond on est wlObjé, on demande l'état des channels
 		ID = 1;
 		local.send('{"jsonrpc":"2.0","method":"getAllChannelInfo","id":'+ID+'}');
+	}
+	if (local.parameters.connected == false){
+		ID = 0;
 	}
 }
 
 function wsMessageReceived(data) { //check si WaveLink répond
-	var connect = JSON.parse(data);
-	if (connect.id == 1) {//si Wavelink repond on est connecté, on demande l'état des channels
-	ID ++;
-	local.send('{"jsonrpc":"2.0","method":"getAllChannelInfo","id":'+ID+'}');
+	var wlObj = JSON.parse(data);
+	if (wlObj.id == 1) {//si Wavelink repond on est wlObjé, on demande l'état des channels
+		ID ++;
+		local.send('{"jsonrpc":"2.0","method":"getAllChannelInfo","id":'+ID+'}');
 	}
-	else if (connect.id == 2) {//si Wavelink repond, on prend les données  
+	else if (wlObj.id == 2) {//si Wavelink repond, on prend les données  
 		statut = JSON.parse(data);
+	//on supprime les anciennes valeurs
+		removeValues();
+	//on enumère pour jouer avec les datas
+		n = 0;
+		while (statut['result'][n].bgColor != null) {
 		//on converti les true et false
-	var n = 0;
-	while (statut['result'][n].bgColor != null) {
-		var i = 0;
-		while (statut['result'][n]['filters'][i].filterID != null) {
-			if (statut['result'][n]['filters'][i].active == true){
-				statut['result'][n]['filters'][i].active = "true";
-			} else {statut['result'][n]['filters'][i].active = "false";}
-			i++;
+			if (statut['result'][n].isAvailable == true){
+				statut['result'][n].isAvailable = "true";
+			} else {statut['result'][n].isAvailable = "false";}
+			if (statut['result'][n].isLocalInMuted == true){
+				statut['result'][n].isLocalInMuted = "true";
+			} else {statut['result'][n].isLocalInMuted = "false";}
+			if (statut['result'][n].isStreamInMuted == true){
+				statut['result'][n].isStreamInMuted = "true";
+			} else {statut['result'][n].isStreamInMuted = "false";}
+			if (statut['result'][n].localMixFilterBypass == true){
+				statut['result'][n].localMixFilterBypass = "true";
+			} else {statut['result'][n].localMixFilterBypass = "false";}
+			if (statut['result'][n].streamMixFilterBypass == true){
+				statut['result'][n].streamMixFilterBypass = "true";
+			} else {statut['result'][n].streamMixFilterBypass = "false";}
+			
+		//on enregistre les nouvelles données des channels (mixer name et mix id) dans les values
+			local.values.addContainer("AudioChannel"+n);
+			local.values.getChild("AudioChannel"+n).addStringParameter("mixerName","", statut['result'][n].mixerName);
+			local.values.getChild("AudioChannel"+n).getChild("mixerName").setAttribute("readonly" ,true);
+			local.values.getChild("AudioChannel"+n).addStringParameter("mixId","", statut['result'][n].mixId);
+			local.values.getChild("AudioChannel"+n).getChild("mixId").setAttribute("readonly" ,true);
+		//on enregistre les nouvelles données des filtres des channels dans les values
+			local.values.getChild("AudioChannel"+n).addFloatParameter("FiltersNumber","",0);
+			local.values.getChild("AudioChannel"+n).getChild("FiltersNumber").setAttribute("readonly" ,true);
+			var i = 0;
+			while (statut['result'][n]['filters'][i].filterID != null) {
+				if (statut['result'][n]['filters'][i].active == true){
+					statut['result'][n]['filters'][i].active = "true";
+				} else {statut['result'][n]['filters'][i].active = "false";}
+				local.values.getChild("AudioChannel"+n).addContainer("Filters");
+				local.values.getChild("AudioChannel"+n).getChild("Filters").addStringParameter("FilterName"+i,"", statut['result'][n]['filters'][i].name);
+				local.values.getChild("AudioChannel"+n).getChild("Filters").getChild("FilterName"+i).setAttribute("readonly" ,true);
+				i++;
+				local.values.getChild("AudioChannel"+n).getChild("FiltersNumber").set(i);
+			}
+			n++;
 		}
-		if (statut['result'][n].isAvailable == true){
-			statut['result'][n].isAvailable = "true";
-		} else {statut['result'][n].isAvailable = "false";}
-		if (statut['result'][n].isLocalInMuted == true){
-			statut['result'][n].isLocalInMuted = "true";
-		} else {statut['result'][n].isLocalInMuted = "false";}
-		if (statut['result'][n].isStreamInMuted == true){
-			statut['result'][n].isStreamInMuted = "true";
-		} else {statut['result'][n].isStreamInMuted = "false";}
-		if (statut['result'][n].localMixFilterBypass == true){
-			statut['result'][n].localMixFilterBypass = "true";
-		} else {statut['result'][n].localMixFilterBypass = "false";}
-		if (statut['result'][n].streamMixFilterBypass == true){
-			statut['result'][n].streamMixFilterBypass = "true";
-		} else {statut['result'][n].streamMixFilterBypass = "false";}
-		n++;
-	}
-	//on sauvegarde les nouveaux paramètres
+	//on enregistre le nombre de channel max
+	local.values.getChild("AudioChannelNumber").set(n);
 	myTrigger.trigger();
 	//et on demande l'état communtateur
 	ID ++;
 	local.send('{"jsonrpc":"2.0","method":"getSwitchState","id":'+ID+'}');
 	}
-	else if (connect.id == 3) {//si Wavelink repond, on prend les données  et on demande l'état des moniteurs
-	//ici il faut save tous les datas transmis
+	else if (wlObj.id == 3) {//si Wavelink repond, on prend les données  et on demande l'état des moniteurs
 	ID ++;
 	local.send('{"jsonrpc":"2.0","method":"getMonitoringState","id":'+ID+'}');
 	}
-	else if (connect.id == 4) {//si Wavelink repond, on prend les données 
-	//ici il faut save tous les datas transmis
+	else if (wlObj.id == 4) {//si Wavelink repond, on prend les données 
+
 	}
 };
 
 /* 	--------------------------------------------------------------------------------------------------------------
 										DIFFERENTS FUNCTIONS FOR SCRIPT
 	--------------------------------------------------------------------------------------------------------------*/
+function removeValues () {
+		var n = 0;
+		while ( n < 10) {
+			local.values.removeContainer("AudioChannel"+n);
+			n++;
+		}
+		local.values.getChild("AudioChannelNumber").set(0);
+};
+	
 function FiltersList(index) {
 	var n = 0;
 	var filters ="";
@@ -125,7 +160,7 @@ function setupToggleFilter(command) {
  }
 
 function Commande() {
-	script.log(statut.jsonrpc);
+
 }
 /* 	--------------------------------------------------------------------------------------------------------------
 											Set Volume
