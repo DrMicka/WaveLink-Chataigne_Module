@@ -1,5 +1,6 @@
-var myTrigger = script.addTrigger("Save Info", "To save all informations of WaveLink");
 var myFileParam = script.addFileParameter("File Param", "File to save all informations of WaveLink");
+//local.scripts.waveLink.params.getChild("fileParam").setAttribute("readonly" ,true);
+local.scripts.waveLink.params.getChild("fileParam").set("SaveWL.txt");
 var statut;
 
 function init()
@@ -8,20 +9,14 @@ function init()
 	statut = JSON.parse(myFileParam.readFile());
 }
 
-function scriptParameterChanged(param)
-{
-    script.log("Parameter changed : "+param.name); //All parameters have "name" property
-    if(param.is(myTrigger)) 
-    {
-        myFileParam.writeFile(statut, true);
-		var path = myFileParam.getAbsolutePath();
-        script.log('file written here : '+ path);
-    }
-}
-
 function moduleValueChanged(value) {
 	if(value.name == "removeAllValues") {
 		removeValues();
+	}
+	if(value.name == "saveInfoWL") {
+		myFileParam.writeFile(statut, true);
+		var path = myFileParam.getAbsolutePath();
+        script.log('file written here : '+ path);
 	}
 }
 /* 	--------------------------------------------------------------------------------------------------------------
@@ -92,7 +87,7 @@ function wsMessageReceived(data) { //check si WaveLink répond
 		}
 	//on enregistre le nombre de channel max
 	local.values.getChild("AudioChannelNumber").set(n);
-	myTrigger.trigger();
+	local.values.saveInfoWL.trigger();
 	//et on demande l'état communtateur
 	ID ++;
 	local.send('{"jsonrpc":"2.0","method":"getSwitchState","id":'+ID+'}');
@@ -160,7 +155,8 @@ function setupToggleFilter(command) {
  }
 
 function Commande() {
-
+	var path = local.scripts.waveLink.params.getChild("fileParam").getAbsolutePath();
+	script.log("path :"+path);
 }
 /* 	--------------------------------------------------------------------------------------------------------------
 											Set Volume
@@ -183,7 +179,7 @@ function setVolume(Vol, idMix, Type) {
 	};
 
 //2. on sauvegarde les nouveaux paramètres et on envoi la commande
-	myTrigger.trigger();
+	local.values.saveInfoWL.trigger();
 	ID ++;
 	local.send('{"jsonrpc": "'+statut.jsonrpc+'","method":"setInputMixer","id":'+ID+',"params":{"mixId":"'+idMix+'","slider":"'+Type+'","localVolumeIn":'+statut['result'][index].localVolumeIn+',"isLocalInMuted":'+statut['result'][index].isLocalInMuted+',"streamVolumeIn":'+statut['result'][index].streamVolumeIn+',"isStreamInMuted":'+statut['result'][index].isStreamInMuted+',"filters":['+FiltersList(index)+'],"localMixFilterBypass":'+statut['result'][index].localMixFilterBypass+',"streamMixFilterBypass":'+statut['result'][index].streamMixFilterBypass+'}}');
 	
@@ -218,7 +214,7 @@ function toggleMuteVolume(idMix, Type) {
 	};
 
 //2. On sauvegarde les nouveaux paramètres et on envoi la commande
-	myTrigger.trigger();
+	local.values.saveInfoWL.trigger();
 	ID ++;
 	local.send('{"jsonrpc": "'+statut.jsonrpc+'","method":"setInputMixer","id":'+ID+',"params":{"mixId":"'+idMix+'","slider":"'+Type+'","localVolumeIn":'+statut['result'][index].localVolumeIn+',"isLocalInMuted":'+statut['result'][index].isLocalInMuted+',"streamVolumeIn":'+statut['result'][index].streamVolumeIn+',"isStreamInMuted":'+statut['result'][index].isStreamInMuted+',"filters":['+FiltersList(index)+'],"localMixFilterBypass":'+statut['result'][index].localMixFilterBypass+',"streamMixFilterBypass":'+statut['result'][index].streamMixFilterBypass+'}}');
 	
@@ -244,7 +240,7 @@ function toggleFilter(idMix, numFiltre) {
 	}
 	
 //2. On sauvegarde les nouveaux paramètres et on envoi la commande
-	myTrigger.trigger();
+	local.values.saveInfoWL.trigger();
 	ID ++;
 	local.send('{"jsonrpc": "'+statut.jsonrpc+'","method":"setInputMixer","id":'+ID+',"params":{"mixId":"'+idMix+'","slider":"","localVolumeIn":'+statut['result'][index].localVolumeIn+',"isLocalInMuted":'+statut['result'][index].isLocalInMuted+',"streamVolumeIn":'+statut['result'][index].streamVolumeIn+',"isStreamInMuted":'+statut['result'][index].isStreamInMuted+',"filters":['+FiltersList(index)+'],"localMixFilterBypass":'+statut['result'][index].localMixFilterBypass+',"streamMixFilterBypass":'+statut['result'][index].streamMixFilterBypass+'}}');
 };

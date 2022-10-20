@@ -26,17 +26,24 @@
       "serverPath": "127.0.0.1:1824",
    },
 	"values": {
-		"removeAllValues": {
+		"Save Information": {
 			"type":"Trigger",
+			"shortName":"saveInfoWL",
+			"description":"To save all informations of WaveLink",
 		},
-		"AudioChannelNumber": {
+		"Remove all values": {
+			"type":"Trigger",
+			"shortName":"removeAllValues",
+		},
+		"Number of audio channel": {
 			"type":"Float",
+			"shortName":"AudioChannelNumber",
 			"readOnly":true,
 		}
 	},
-   "scripts": [
-      "WaveLink.js"
-   ],
+	"scripts":[
+		"WaveLink.js"
+	],
    "commands": {
 		"Set volume": {
 			"menu": "",
