@@ -2,7 +2,7 @@
 	"name": "WaveLink",
 	"type": "WebSocket Client",
 	"path": "Software",
-	"version": "0.5.2",
+	"version": "0.5.3",
 	"description": "To control your sounds via WaveLink",
 	"url": "https://github.com/DrMicka/WaveLink-Chataigne_Module",
 	"downloadURL": "https://github.com/DrMicka/WaveLink-Chataigne_Module/archive/master.zip",

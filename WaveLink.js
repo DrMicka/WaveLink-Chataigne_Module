@@ -45,7 +45,22 @@ function wsMessageReceived(data) { //check si WaveLink répond
 		removeValues();
 	//on enumère pour jouer avec les datas
 		n = 0;
-		while (statut['result'][n].bgColor != null) {
+		while (statut['result'][n].bgColor != null) {	
+		//on enregistre les nouvelles données des channels (mixer name et mix id) dans les values
+			local.values.addContainer("AudioChannel"+n);
+			local.values.getChild("AudioChannel"+n).addStringParameter("Mixer name","", statut['result'][n].mixerName);
+			local.values.getChild("AudioChannel"+n).getChild("mixerName").setAttribute("readonly" ,true);
+			local.values.getChild("AudioChannel"+n).addStringParameter("Mix ID","", statut['result'][n].mixId);
+			local.values.getChild("AudioChannel"+n).getChild("mixId").setAttribute("readonly" ,true);
+			local.values.getChild("AudioChannel"+n).addBoolParameter("Stream muted","To know if the stream audio channel's is muted or not",statut['result'][n].isStreamInMuted);
+			local.values.getChild("AudioChannel"+n).getChild("streamMuted").setAttribute("readonly" ,true);
+			local.values.getChild("AudioChannel"+n).addFloatParameter("Stream volume","The level of stream volume of this channel",statut['result'][n].streamVolumeIn,0,100);
+			local.values.getChild("AudioChannel"+n).getChild("streamVolume").setAttribute("readonly" ,true);
+			local.values.getChild("AudioChannel"+n).addBoolParameter("Local muted","To know if the local audio channel's is muted or not",statut['result'][n].isLocalInMuted);
+			local.values.getChild("AudioChannel"+n).getChild("localMuted").setAttribute("readonly" ,true);
+			local.values.getChild("AudioChannel"+n).addFloatParameter("Local volume","The level of local volume of this channel",statut['result'][n].localVolumeIn,0,100);
+			local.values.getChild("AudioChannel"+n).getChild("localVolume").setAttribute("readonly" ,true);
+			
 		//on converti les true et false
 			if (statut['result'][n].isAvailable == true){
 				statut['result'][n].isAvailable = "true";
@@ -63,25 +78,24 @@ function wsMessageReceived(data) { //check si WaveLink répond
 				statut['result'][n].streamMixFilterBypass = "true";
 			} else {statut['result'][n].streamMixFilterBypass = "false";}
 			
-		//on enregistre les nouvelles données des channels (mixer name et mix id) dans les values
-			local.values.addContainer("AudioChannel"+n);
-			local.values.getChild("AudioChannel"+n).addStringParameter("mixerName","", statut['result'][n].mixerName);
-			local.values.getChild("AudioChannel"+n).getChild("mixerName").setAttribute("readonly" ,true);
-			local.values.getChild("AudioChannel"+n).addStringParameter("mixId","", statut['result'][n].mixId);
-			local.values.getChild("AudioChannel"+n).getChild("mixId").setAttribute("readonly" ,true);
-		//on enregistre les nouvelles données des filtres des channels dans les values
-			local.values.getChild("AudioChannel"+n).addFloatParameter("FiltersNumber","",0);
-			local.values.getChild("AudioChannel"+n).getChild("FiltersNumber").setAttribute("readonly" ,true);
+		//on enregistre les nouvelles données des filtres des channels 
+			local.values.getChild("AudioChannel"+n).addFloatParameter("Filters number","",0);
+			local.values.getChild("AudioChannel"+n).getChild("filtersNumber").setAttribute("readonly" ,true);
 			var i = 0;
 			while (statut['result'][n]['filters'][i].filterID != null) {
+			//On enregistre les données des filtres dans values
+				local.values.getChild("AudioChannel"+n).addContainer("Filters");
+				local.values.getChild("AudioChannel"+n).getChild("Filters").addStringParameter("Filter name "+i,"", statut['result'][n]['filters'][i].name);
+				local.values.getChild("AudioChannel"+n).getChild("Filters").getChild("filterName"+i).setAttribute("readonly" ,true);
+				local.values.getChild("AudioChannel"+n).getChild("Filters").addBoolParameter("Filter name "+i+" active","To know if this filter is activate or not",statut['result'][n]['filters'][i].active);
+				local.values.getChild("AudioChannel"+n).getChild("Filters").getChild("filterName"+i+"active").setAttribute("readonly" ,true);
+			//On change les true et false en texte
 				if (statut['result'][n]['filters'][i].active == true){
 					statut['result'][n]['filters'][i].active = "true";
 				} else {statut['result'][n]['filters'][i].active = "false";}
-				local.values.getChild("AudioChannel"+n).addContainer("Filters");
-				local.values.getChild("AudioChannel"+n).getChild("Filters").addStringParameter("FilterName"+i,"", statut['result'][n]['filters'][i].name);
-				local.values.getChild("AudioChannel"+n).getChild("Filters").getChild("FilterName"+i).setAttribute("readonly" ,true);
+			//On enregistre la nouvelle valeur du nombre de filtres
 				i++;
-				local.values.getChild("AudioChannel"+n).getChild("FiltersNumber").set(i);
+				local.values.getChild("AudioChannel"+n).getChild("filtersNumber").set(i);
 			}
 			n++;
 		}
