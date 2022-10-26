@@ -184,10 +184,12 @@ function setVolume(Vol, idMix, Type) {
 		if (statut['result'][n].mixId == idMix && Type == "stream") {
 			index = n;
 			statut['result'][n].streamVolumeIn = Vol;
+			local.values.getChild("AudioChannel"+n).getChild("streamVolume").set(Vol);
 		}
 		else if (statut['result'][n].mixId == idMix && Type == "local") { 
 			index = n;
 			statut['result'][n].localVolumeIn = Vol;
+			local.values.getChild("AudioChannel"+n).getChild("localVolume").set(Vol);
 		}
 	n++;
 	};
@@ -211,18 +213,22 @@ function toggleMuteVolume(idMix, Type) {
 		if (statut['result'][n].mixId == idMix && Type == "stream" && statut['result'][n].isStreamInMuted == "true") {
 			index = n;
 			statut['result'][n].isStreamInMuted = "false";
+			local.values.getChild("AudioChannel"+n).getChild("streamMuted").set(false);
 		}
 		else if (statut['result'][n].mixId == idMix && Type == "stream" && statut['result'][n].isStreamInMuted == "false") { 
 			index = n;
 			statut['result'][n].isStreamInMuted = "true";
+			local.values.getChild("AudioChannel"+n).getChild("streamMuted").set(true);
 	}
 		else if (statut['result'][n].mixId == idMix && Type == "local" && statut['result'][n].isLocalInMuted == "true") {
 			index = n;
 			statut['result'][n].isLocalInMuted = "false";
+			local.values.getChild("AudioChannel"+n).getChild("localMuted").set(false);
 		}
 		else if (statut['result'][n].mixId == idMix && Type == "local" && statut['result'][n].isLocalInMuted == "false") { 
 			index = n;
 			statut['result'][n].isLocalInMuted = "true";
+			local.values.getChild("AudioChannel"+n).getChild("localMuted").set(true);
 	}
 	n++;
 	};
@@ -245,10 +251,12 @@ function toggleFilter(idMix, numFiltre) {
 		if (statut['result'][n].mixId == idMix && statut['result'][0]['filters'][numFiltre].active == "true") {
 			index = n;
 			statut['result'][n]['filters'][numFiltre].active = "false";
+			local.values.getChild("AudioChannel"+n).getChild("Filters").getChild("filterName"+numFiltre+"Active").set(false);
 		}
 		else if (statut['result'][n].mixId == idMix && statut['result'][0]['filters'][numFiltre].active == "false") { 
 			index = n;
 			statut['result'][n]['filters'][numFiltre].active = "true";
+			local.values.getChild("AudioChannel"+n).getChild("Filters").getChild("filterName"+numFiltre+"Active").set(true);
 		}
 		n++;
 	}
