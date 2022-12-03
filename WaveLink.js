@@ -248,12 +248,12 @@ function toggleFilter(idMix, numFiltre) {
 	var index;
 	var n = 0;
 	while (statut['result'][n].bgColor != null) {
-		if (statut['result'][n].mixId == idMix && statut['result'][0]['filters'][numFiltre].active == "true") {
+		if (statut['result'][n].mixId == idMix && statut['result'][n]['filters'][numFiltre].active == "true") {
 			index = n;
 			statut['result'][n]['filters'][numFiltre].active = "false";
 			local.values.getChild("AudioChannel"+n).getChild("Filters").getChild("filterName"+numFiltre+"Active").set(false);
 		}
-		else if (statut['result'][n].mixId == idMix && statut['result'][0]['filters'][numFiltre].active == "false") { 
+		else if (statut['result'][n].mixId == idMix && statut['result'][n]['filters'][numFiltre].active == "false") { 
 			index = n;
 			statut['result'][n]['filters'][numFiltre].active = "true";
 			local.values.getChild("AudioChannel"+n).getChild("Filters").getChild("filterName"+numFiltre+"Active").set(true);
