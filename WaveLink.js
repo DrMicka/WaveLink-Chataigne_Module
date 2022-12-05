@@ -24,7 +24,7 @@ function moduleValueChanged(value) {
 	--------------------------------------------------------------------------------------------------------------*/
 function update()
 {
-	if (ID == 0) {//si Wavelink repond on est wlObjé, on demande l'état des channels
+	if (ID == 0) {//si Wavelink repond, on demande l'état des channels
 		ID = 1;
 		local.send('{"jsonrpc":"2.0","method":"getApplicationInfo","id":'+ID+'}');
 	}
@@ -133,6 +133,73 @@ function wsMessageReceived(data) { //check si WaveLink répond
 	else if (wlObj.id == 6) {//si Wavelink repond, on prend les données  et on demande l'état des moniteurs
 
 	}
+/* 	--------------------------------------------------------------------------------------------------------------
+										Interpretation of the answer after the request
+	--------------------------------------------------------------------------------------------------------------*/
+	//set volume
+	else if (wlObj.method == "inputVolumeChanged") {//si Wavelink repond, on prend les données  et on demande l'état des moniteurs
+		var n = 0;
+		while (statut['result'][n].bgColor != null) {
+			if (statut['result'][n].identifier == wlObj.params.identifier && wlObj.params.mixerID == "com.elgato.mix.stream") {
+				statut['result'][n]['streamMixer'][1] = wlObj.params.value;
+				local.values.getChild("AudioChannel"+n).getChild("streamVolume").set(wlObj.params.value);
+			}
+			else if (statut['result'][n].identifier == wlObj.params.identifier && wlObj.params.mixerID == "com.elgato.mix.local") { 
+				statut['result'][n]['localMixer'][1] = wlObj.params.value;
+				local.values.getChild("AudioChannel"+n).getChild("localVolume").set(wlObj.params.value);
+			}
+		n++;
+		};
+		local.values.saveInfoWL.trigger();
+	}
+	
+	//toggle mute volume
+	else if (wlObj.method == "inputMuteChanged") {//si Wavelink repond, on prend les données  et on demande l'état des moniteurs
+		var n = 0;
+		while (statut['result'][n].bgColor != null) {
+			if (statut['result'][n].identifier == wlObj.params.identifier && wlObj.params.mixerID == "com.elgato.mix.stream" && wlObj.params.value == true) {
+				statut['result'][n]['streamMixer'][0] = "true";
+				local.values.getChild("AudioChannel"+n).getChild("streamMuted").set(true);
+			}
+			else if (statut['result'][n].identifier == wlObj.params.identifier && wlObj.params.mixerID == "com.elgato.mix.stream" && wlObj.params.value == false) { 
+				statut['result'][n]['streamMixer'][0] = "false";
+				local.values.getChild("AudioChannel"+n).getChild("streamMuted").set(false);
+		}
+			else if (statut['result'][n].identifier == wlObj.params.identifier && wlObj.params.mixerID == "com.elgato.mix.local" && wlObj.params.value == true) {
+				statut['result'][n]['localMixer'][0] = "true";
+				local.values.getChild("AudioChannel"+n).getChild("localMuted").set(true);
+			}
+			else if (statut['result'][n].identifier == wlObj.params.identifier && wlObj.params.mixerID == "com.elgato.mix.local" && wlObj.params.value == false) { 
+				statut['result'][n]['localMixer'][0] = "false";
+				local.values.getChild("AudioChannel"+n).getChild("localMuted").set(false);
+		}
+		n++;
+		};
+		local.values.saveInfoWL.trigger();
+	}
+	
+	//Toggle filter
+	else if (wlObj.method == "filterChanged") {//si Wavelink repond, on prend les données  et on demande l'état des moniteurs
+		var n = 0;
+		var index = 0;
+		while (statut['result'][n].bgColor != null) {
+			if (statut['result'][n].identifier == wlObj.params.identifier){
+				while (statut['result'][n]['filters'][index].filterID != null) {
+					if (statut['result'][n]['filters'][index].filterID == wlObj.params.filterID && wlObj.params.value == true){
+						statut['result'][n]['filters'][index].isActive = "true";
+						local.values.getChild("AudioChannel"+n).getChild("Filters").getChild("filterName"+index+"Active").set(true);	
+					}
+					else if (statut['result'][n]['filters'][index].filterID == wlObj.params.filterID && wlObj.params.value == false){
+						statut['result'][n]['filters'][index].isActive = "false";
+						local.values.getChild("AudioChannel"+n).getChild("Filters").getChild("filterName"+index+"Active").set(false);	
+					}
+				index++;
+				}
+			}
+			n++;
+		}		
+		local.values.saveInfoWL.trigger();
+	}
 };
 
 /* 	--------------------------------------------------------------------------------------------------------------
@@ -145,20 +212,6 @@ function removeValues () {
 			n++;
 		}
 		local.values.getChild("AudioChannelNumber").set(0);
-};
-
-//à modifier en fonction des besoins lors du toggle filter	
-function FiltersList(index) {
-	var n = 0;
-	var filters ="";
-	while (statut['result'][index]['filters'][n].filterID != null) {
-		if (n!=0){
-			filters += ",";
-		}
-		filters += '{"active":'+statut['result'][index]['filters'][n].active+',"filterID":"'+statut['result'][index]['filters'][n].filterID+'","name":"'+statut['result'][index]['filters'][n].name+'","pluginID":"'+statut['result'][index]['filters'][n].pluginID+'"}';
-	n++;	
-	}
-	return filters;
 };
 
 function setupEnumChannel(command) {
@@ -203,19 +256,14 @@ function setVolume(Vol, identifier, Type) {
 	while (statut['result'][n].bgColor != null) {
 		if (statut['result'][n].identifier == identifier && Type == "com.elgato.mix.stream") {
 			index = n;
-			statut['result'][n]['streamMixer'][1] = Vol;
-			local.values.getChild("AudioChannel"+n).getChild("streamVolume").set(Vol);
 		}
 		else if (statut['result'][n].identifier == identifier && Type == "com.elgato.mix.local") { 
 			index = n;
-			statut['result'][n]['localMixer'][1] = Vol;
-			local.values.getChild("AudioChannel"+n).getChild("localVolume").set(Vol);
 		}
 	n++;
 	};
 
-//2. on sauvegarde les nouveaux paramètres et on envoi la commande
-	local.values.saveInfoWL.trigger();
+//2. on envoi la commande
 	ID ++;
 	local.send('{"jsonrpc": "2.0","method": "setInputConfig","id": '+ID+',"params": {"property": "Volume","identifier": '+JSON.stringify(statut['result'][index].identifier)+',"mixerID": '+JSON.stringify(Type)+',"value": '+Vol+',"forceLink": false}}');
 }
@@ -231,33 +279,24 @@ function toggleMuteVolume(identifier, Type) {
 	while (statut['result'][n].bgColor != null) {
 		if (statut['result'][n].identifier == identifier && Type == "com.elgato.mix.stream" && statut['result'][n]['streamMixer'][0] == "true") {
 			index = n;
-			statut['result'][n]['streamMixer'][0] = "false";
 			var value = "false";
-			local.values.getChild("AudioChannel"+n).getChild("streamMuted").set(false);
 		}
 		else if (statut['result'][n].identifier == identifier && Type == "com.elgato.mix.stream" && statut['result'][n]['streamMixer'][0] == "false") { 
 			index = n;
-			statut['result'][n]['streamMixer'][0] = "true";
 			var value = "true";
-			local.values.getChild("AudioChannel"+n).getChild("streamMuted").set(true);
-	}
+		}
 		else if (statut['result'][n].identifier == identifier && Type == "com.elgato.mix.local" && statut['result'][n]['localMixer'][0] == "true") {
 			index = n;
-			statut['result'][n]['localMixer'][0] = "false";
 			var value = "false";
-			local.values.getChild("AudioChannel"+n).getChild("localMuted").set(false);
 		}
 		else if (statut['result'][n].identifier == identifier && Type == "com.elgato.mix.local" && statut['result'][n]['localMixer'][0] == "false") { 
 			index = n;
-			statut['result'][n]['localMixer'][0] = "true";
 			var value = "true";
-			local.values.getChild("AudioChannel"+n).getChild("localMuted").set(true);
-	}
+		}
 	n++;
 	};
 
 //2. On sauvegarde les nouveaux paramètres et on envoi la commande
-	local.values.saveInfoWL.trigger();
 	ID ++;
 	local.send('{"jsonrpc": "2.0","method": "setInputConfig","id": '+ID+',"params": {"property": "Mute","identifier": '+JSON.stringify(statut['result'][index].identifier)+',"mixerID": '+JSON.stringify(Type)+',"value": '+value+',"forceLink": false}}');
 }
@@ -272,19 +311,16 @@ function toggleFilter(identifier, numFiltre) {
 	while (statut['result'][n].bgColor != null) {
 		if (statut['result'][n].identifier == identifier && statut['result'][n]['filters'][numFiltre].isActive == "true") {
 			index = n;
-			statut['result'][n]['filters'][numFiltre].isActive = "false";
-			local.values.getChild("AudioChannel"+n).getChild("Filters").getChild("filterName"+numFiltre+"Active").set(false);
+			var value = "false";
 		}
 		else if (statut['result'][n].identifier == identifier && statut['result'][n]['filters'][numFiltre].isActive == "false") { 
 			index = n;
-			statut['result'][n]['filters'][numFiltre].isActive = "true";
-			local.values.getChild("AudioChannel"+n).getChild("Filters").getChild("filterName"+numFiltre+"Active").set(true);
+			var value = "true";
 		}
 		n++;
 	}
 	
 //2. On sauvegarde les nouveaux paramètres et on envoi la commande
-	local.values.saveInfoWL.trigger();
 	ID ++;
-	local.send('{"jsonrpc": "2.0","method": "filterChanged","id": '+ID+',"params": {"filterID":"'+statut['result'][index]['filters'][numFiltre].filterID+'","identifier":'+JSON.stringify(statut['result'][index].identifier)+',"value":false}}');
+	local.send('{"jsonrpc": "2.0","method": "setFilter","id": '+ID+',"params": {"identifier": '+JSON.stringify(statut['result'][index].identifier)+',"filterID":"'+statut['result'][index]['filters'][numFiltre].filterID+'","value": '+value+'}}');
 };

@@ -1,0 +1,54 @@
+Discussion depuis WaveLink 1.6
+envoi 1 :
+	{"jsonrpc": "2.0","method": "getApplicationInfo","id": 1}
+réponse 1:  
+	{"id":1,"result":{"appID":"egwl","appName":"Elgato Wave Link","interfaceRevision":"2"}}
+
+
+Envoi 2:
+	{"jsonrpc": "2.0", "method": "getMicrophoneConfig", "id": 2}
+réponse 2:
+{"id":2,"result":[{"identifier":"AS44J1A05748\\PCM_IN_01_C_00_SD1","isClipGuardOn":true,"isLowCutOn":false,"isWaveLink":true,"isWaveXLR":false,"lowCutType":0,"name":"Elgato Wave:1"}]}
+
+Envoi 3:
+	{"jsonrpc": "2.0", "method": "getOutputs", "id": 3}
+Réponse 3:
+{"id":3,"result":{"outputs":[{"identifier":"HDAUDIO#FUNC_01&VEN_10EC&DEV_0255&SUBSYS_10251262&REV_1000#4&1F9A7DE5&0&0001#{6994AD04-93EF-11D0-A3CC-00A0C9223196}\\REARLINEOUTWAVE3","name":"Haut-parleurs (Realtek High Definition Audio)"},{"identifier":"PCM_OUT_01_C_00_SD1","name":"Headphones (Elgato Wave:1)"}],"selectedOutput":"HDAUDIO#FUNC_01&VEN_10EC&DEV_0255&SUBSYS_10251262&REV_1000#4&1F9A7DE5&0&0001#{6994AD04-93EF-11D0-A3CC-00A0C9223196}\\REARLINEOUTWAVE3"}}
+
+Envoi 4:
+	{"jsonrpc": "2.0", "method": "getOutputConfig","id": 4}
+Réponse 4:
+	{"id":4,"result":{"localMixer":[false,98],"streamMixer":[false,100]}}
+
+
+Envoi 5:
+	{"jsonrpc": "2.0", "method": "getInputConfigs", "id": 5}
+Réponse 5:
+{"id":5,"result":[{"bgColor":"#1817B8","filters":[{"filterID":"D9AF7914-062F-4D19-9267-E4F895B75801","isActive":true,"name":"Noise Suppression","pluginID":"595e8"},{"filterID":"03ED68D1-38E2-4216-81A1-DF96340F8C61","isActive":true,"name":"ReaEQ (ReaPlugs Edition)","pluginID":"72656571"},{"filterID":"83B8DC6B-4F4B-4E2A-A9C2-BAA9BDE31C44","isActive":true,"name":"ReaComp (ReaPlugs Edition)","pluginID":"7265636d"},{"filterID":"63E0555E-82F5-4233-9828-8D84BEF6A91F","isActive":true,"name":"ReaEQ (ReaPlugs Edition)","pluginID":"72656571"},{"filterID":"CCD8A2C8-1AF2-4C92-8775-CA5EE10F7907","isActive":true,"name":"Lisp","pluginID":"4c737031"},{"filterID":"1AC7C65D-996B-463A-A01F-1368D742A169","isActive":true,"name":"ReaGate (ReaPlugs Edition)","pluginID":"72656774"}],"iconData":"","identifier":"AS44J1A05748\\PCM_IN_01_C_00_SD1","inputType":4,"isAvailable":true,"localMixer":[true,100,false],"name":"Elgato Wave:1","streamMixer":[false,100,false]},{"bgColor":"#1817B8","iconData":"","identifier":"PCM_OUT_01_V_00_SD2","inputType":2,"isAvailable":true,"localMixer":[false,10,false],"name":"System","streamMixer":[true,100,false]},{"bgColor":"#FF00E8","iconData":"","identifier":"PCM_OUT_01_V_02_SD3","inputType":2,"isAvailable":true,"localMixer":[true,100,false],"name":"Music","streamMixer":[true,100,false]},{"bgColor":"#CFD924","iconData":"","identifier":"PCM_OUT_01_V_06_SD5","inputType":2,"isAvailable":true,"localMixer":[false,20,false],"name":"Voice Chat","streamMixer":[true,100,false]},{"bgColor":"#23DE63","iconData":"","identifier":"PCM_OUT_01_V_12_SD8","inputType":2,"isAvailable":true,"localMixer":[false,100,false],"name":"OBS","streamMixer":[true,100,false]},{"bgColor":"#F2315B","iconData":"","identifier":"PCM_OUT_01_V_10_SD7","inputType":2,"isAvailable":true,"localMixer":[true,98,false],"name":"Game","streamMixer":[true,100,false]}]}
+
+Envoi 6:
+	{"jsonrpc": "2.0","method": "getSwitchState","id": 6}
+Réponse 6:
+	{"id":6,"result":{"value":"com.elgato.mix.local"}}
+	
+
+
+
+
+Envoi chgmt monitor micro
+{"jsonrpc": "2.0","method": "setInputConfig","id": 8,"params": {"property": "Volume","identifier": "AS44J1A05748\\PCM_IN_01_C_00_SD1","mixerID": "com.elgato.mix.local","value": 99,"forceLink": false}}
+reponse chgmt monitor micro
+{"jsonrpc":"2.0","method":"inputVolumeChanged","params":{"identifier":"AS44J1A05748\\PCM_IN_01_C_00_SD1","mixerID":"com.elgato.mix.local","value":80}}
+
+
+Envoi unmute monitor micro
+{"jsonrpc": "2.0","method": "setInputConfig","id": 7,"params": {"property": "Mute","identifier": "AS44J1A05748\\PCM_IN_01_C_00_SD1","mixerID": "com.elgato.mix.local","value": false,"forceLink": false}}
+reponse unmute monitor micro
+{"jsonrpc":"2.0","method":"inputMuteChanged","params":{"identifier":"AS44J1A05748\\PCM_IN_01_C_00_SD1","mixerID":"com.elgato.mix.local","value":false}}
+
+
+Envoi test toggle filter
+{"jsonrpc": "2.0","method": "setFilter","id": 7,"params": {"identifier": "AS44J1A05748\\PCM_IN_01_C_00_SD1","filterID":"D9AF7914-062F-4D19-9267-E4F895B75801","value": true,"forceLink": false}}
+
+reponse toggle filter micro
+{"jsonrpc":"2.0","method":"filterChanged","params":{"filterID":"D9AF7914-062F-4D19-9267-E4F895B75801","identifier":"AS44J1A05748\\PCM_IN_01_C_00_SD1","value":true}}

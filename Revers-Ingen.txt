@@ -1,0 +1,10 @@
+Retro engeneering avec plugin de midi mixer
+
+1.creation d'un websocket client sur le port 127.0.0.1:1824 pour communiquer avec wavelink
+2.activer les log in et out du module
+3.mettre le protocol en JSON
+
+4.creation d'un websocket server sur le port 127.0.0.1:1824 pour communiquer avec midiMixer
+5.activer les log in et out du module
+6.mettre le protocol en JSON
+si la connection ne se fait pas, ne pas hésiter à activer désactiver le plugin dans midi mixer
